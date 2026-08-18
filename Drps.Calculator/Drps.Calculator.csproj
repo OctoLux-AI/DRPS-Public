@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Drps.Calculator-1f6b2c3d-8e4a-4f7b-9c2d-3a5e6f7b8c9d</UserSecretsId>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
+    <!-- Direct override, above EFCore.SqlServer 10.0.9's own transitive 6.1.1 (CLAUDE.md's
+         "SqlClient / .NET 10 Platform-Not-Supported" decision, 2026-08-16) - 6.1.1 is not
+         documented as tested against .NET 10; 7.0.2 is. -->
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
+    <PackageReference Include="Polly" Version="8.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Drps.Shared\Drps.Shared.csproj" />
+    <!-- Idempotency guard (this session's scheduling-resilience audit, Fix 3) needs
+         DrpsDbContext/WorkerRunGuard for its (WorkerName, RunDate) bookkeeping - Drps.
+         Calculator's own indicator computation still uses CalculatorDbContext exclusively,
+         unchanged; this reference exists solely for that one cross-cutting concern, same
+         reasoning Drps.Gate already has for referencing both DbContexts. -->
+    <ProjectReference Include="..\Drps.Ingestion\Drps.Ingestion.csproj" />
+  </ItemGroup>
+
+  <!-- Drps.Ingestion's own appsettings.json/appsettings.Development.json flow transitively into
+       this project's publish output via the ProjectReference above (standard MSBuild content
+       propagation), colliding with this project's own same-named files (NETSDK1152). Only this
+       project's own copies should ever land in its own publish output - strip anything with a
+       matching filename whose source isn't this project's own directory. Publish-output
+       plumbing only; does not touch which appsettings.json this project loads at runtime. -->
+  <Target Name="ExcludeReferencedProjectAppSettingsFromPublish" BeforeTargets="_HandleFileConflictsForPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="('%(Filename)%(Extension)' == 'appsettings.json' Or '%(Filename)%(Extension)' == 'appsettings.Development.json') And !$([System.String]::Copy('%(FullPath)').StartsWith('$(MSBuildProjectDirectory)'))" />
+    </ItemGroup>
+  </Target>
+</Project>
