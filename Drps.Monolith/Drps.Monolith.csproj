@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Runnable (dotnet run) for an on-demand grading-report pass, same shape precedent as
+         Drps.Ledger's Program.cs - plain Microsoft.NET.Sdk rather than Microsoft.NET.Sdk.Worker.
+         Drps.Monolith has no scheduled BackgroundService loop of its own: it is a retrospective
+         replay/grading tool that reads across Ingestion/Calculator/Gate/Ledger, never a live
+         participant in any decision (CLAUDE.md's "Architecture Beyond Gate: Ledger and
+         Monolith Named and Sequenced" block). -->
+    <OutputType>Exe</OutputType>
+
+    <!-- Self-contained/win-x64 required as a structural consequence, not an independent choice -
+         Drps.Monolith references Drps.Ingestion, which was made self-contained earlier the same
+         day (closing the host-runtime-update exposure that crashed Ingestion/Calculator on
+         8/12-8/13). MSBuild's NETSDK1151 forbids a non-self-contained project referencing a
+         self-contained one. -->
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Drps.Shared\Drps.Shared.csproj" />
+    <!-- Reuses DrpsDbContext directly - same pattern as Drps.Gate/Drps.Adjuster/Drps.Ledger,
+         no second DbContext or duplicate EF configuration. Monolith reads GateScore/Position
+         (and, eventually, Ingestion/Calculator's own tables) through this same context - it
+         never owns its own persistence, per CLAUDE.md's "not a data store" role clarification. -->
+    <ProjectReference Include="..\Drps.Ingestion\Drps.Ingestion.csproj" />
+  </ItemGroup>
+
+</Project>

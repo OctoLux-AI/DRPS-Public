@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- One-shot overnight-scan-chain check, same isolation invariant as Drps.Diagnostics:
+         zero ProjectReferences to any other DRPS project. This exists specifically to detect
+         Ingestion/Calculator/Gate failing silently (CLAUDE.md's 8/12-8/13 outage, ~36 hours
+         undetected because nothing checked whether WorkerRunRecords rows actually appeared) -
+         a watchdog that depended on the thing it's watching, or on shared code that could be
+         broken by the same root cause, would defeat its own purpose. Raw Microsoft.Data.SqlClient
+         against the real "Drps" LocalDB (same TickerBotVerificationProbe precedent Drps.
+         Diagnostics already established) and a standalone Pushover HTTP client duplicated
+         locally (see PushoverAlerter.cs) rather than referencing Drps.Execution's
+         IPushoverNotificationService or even Drps.Shared's BuildCurrencyAlerter - must be able
+         to run and alert even if something is badly broken elsewhere in the solution. -->
+    <OutputType>Exe</OutputType>
+
+    <!-- Self-contained/win-x64, matching the fix applied to Drps.Ingestion/Calculator/Gate/
+         Ledger the same day (self-contained-publish task, 2026-08-13) - a watchdog whose own
+         startup depends on the host's shared runtime state is exposed to the exact failure mode
+         it exists to detect. -->
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.2" />
+  </ItemGroup>
+
+</Project>

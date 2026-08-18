@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Runnable (dotnet run) so ManualPositionEntryService is manually invokable, but plain
+         Microsoft.NET.Sdk rather than Microsoft.NET.Sdk.Worker - Drps.Ledger has no scheduled
+         BackgroundService loop of its own (Ledger: Sixth Design Decision), so it deliberately
+         does not carry the Worker SDK's Generic Host scaffolding. -->
+    <OutputType>Exe</OutputType>
+
+    <!-- Self-contained/win-x64 required here as a structural consequence, not an independent
+         choice - Drps.Gate references Drps.Ledger directly, and Drps.Gate was made self-contained
+         (self-contained-publish task, 2026-08-13, closing the host-runtime-update exposure that
+         crashed Ingestion/Calculator on 8/12-8/13). MSBuild's NETSDK1150 forbids a self-contained
+         exe referencing a non-self-contained exe, so this follows from Gate's change, not a
+         separate decision about Ledger's own deployment story. -->
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Drps.Shared\Drps.Shared.csproj" />
+    <!-- Reuses DrpsDbContext directly - same pattern as Drps.Gate/Drps.Adjuster, no second
+         DbContext or duplicate EF configuration. -->
+    <ProjectReference Include="..\Drps.Ingestion\Drps.Ingestion.csproj" />
+  </ItemGroup>
+
+</Project>

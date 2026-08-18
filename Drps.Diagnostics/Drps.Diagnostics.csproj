@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Runnable (dotnet run) one-shot diagnostic, same shape precedent as Drps.Ledger/
+         Drps.Monolith - plain Microsoft.NET.Sdk rather than Microsoft.NET.Sdk.Worker, since
+         this has no scheduled BackgroundService loop, just a single empirical probe run.
+         Deliberately carries no ProjectReference to Drps.Ingestion or any other DRPS project -
+         it reads the same shared secrets file every other project reads (by convention, not by
+         a shared dependency), and stays fully standalone so nothing in production ever ends up
+         calling into it, or vice versa. See CLAUDE.md's "Two-Tier Verification Cost Model"
+         for why this tool exists.
+
+         The TickerBot verification probe (CLAUDE.md's "TickerBot Verification Tool:
+         Diagnostics Isolation Preserved Over Logic Reuse," 2026-08-06) extends this same
+         invariant to data access: Microsoft.Data.SqlClient is referenced directly below for
+         raw, parameterized SQL against the real "Drps" LocalDB, deliberately NOT via
+         Microsoft.EntityFrameworkCore.SqlServer / any Drps.Shared DbContext - that would
+         require a ProjectReference this project intentionally does not carry. -->
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.2" />
+  </ItemGroup>
+
+</Project>
