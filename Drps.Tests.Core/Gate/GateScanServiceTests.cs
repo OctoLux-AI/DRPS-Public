@@ -199,8 +199,9 @@ public class GateScanServiceTests
     }
 
     // Full, verified, aligned candidate - bars + all four indicator types at the same BarDate.
-    // Composite score for these exact values (RSI=60 -> quality 1.0, RVOL=2.25 -> quality 0.5,
-    // both verified) is 0.70*1.0 + 0.30*0.5 = 0.85, landing exactly on the BUY threshold.
+    // A well-formed candidate that clears every verification/alignment check; the resulting
+    // composite score and bucket depend on GateQualityScorer/GateCompositeService's own
+    // formula, which is redacted for public release - see README.md.
     private static void SeedAcceptedCandidate(CalculatorDbContext dbContext, string symbol, DateOnly barDate)
     {
         SeedVerifiedBars(dbContext, symbol, barDate);
@@ -210,9 +211,10 @@ public class GateScanServiceTests
         SeedAtrIndicator(dbContext, symbol, barDate);
     }
 
-    // Today's real shipped values (same fixture GateParametersSeeder inserts) - every
-    // RunScanAsync test needs exactly one active row now that scoring is fail-closed without
-    // one. Returns the persisted entity (its Id, assigned on save) so tests can assert
+    // [REDACTED FOR PUBLIC RELEASE] Placeholder fixture values, not DRPS's real shipped
+    // tuning - see README.md's "What's intentionally not public" section. Every RunScanAsync
+    // test needs exactly one active row now that scoring is fail-closed without one. Returns
+    // the persisted entity (its Id, assigned on save) so tests can assert
     // GateScore.GateParameterVersion against the real value rather than a guessed constant.
     private static async Task<GateParameters> SeedActiveGateParametersAsync(DrpsDbContext dbContext)
     {
@@ -220,12 +222,12 @@ public class GateScanServiceTests
         {
             EffectiveFrom = BarDate.ToDateTime(TimeOnly.MinValue),
             IsActive = true,
-            RsiLowerBound = 50m,
-            RsiPeak = 60m,
-            RsiUpperBound = 70m,
+            RsiLowerBound = 45m,
+            RsiPeak = 55m,
+            RsiUpperBound = 65m,
             RsiFloorQuality = 0.75m,
-            RvolFloorMultiple = 1.5m,
-            RvolCeilingMultiple = 3.0m,
+            RvolFloorMultiple = 1.2m,
+            RvolCeilingMultiple = 2.8m,
             RvolFullWeight = 0.30m,
             RvolHalfWeight = 0.15m,
             RsiCompositeWeight = 0.70m,

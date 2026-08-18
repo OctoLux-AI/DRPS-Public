@@ -52,24 +52,25 @@ public class AdjusterScanServiceTests
         GateParameterVersion = 1
     };
 
-    // Today's real shipped values (same fixture AdjusterParametersValidatorTests uses).
+    // [REDACTED FOR PUBLIC RELEASE] Placeholder fixture values, not DRPS's real shipped
+    // tuning - see README.md's "What's intentionally not public" section.
     private static async Task<AdjusterParameters> SeedActiveAdjusterParametersAsync(DrpsDbContext dbContext)
     {
         var parameters = new AdjusterParameters
         {
             EffectiveFrom = AsOf.Date,
             IsActive = true,
-            TierOneFloor = 0.85m,
-            TierOneCeiling = 0.89m,
-            TierTwoCeiling = 0.93m,
-            TierOneBaseRate = 0.03m,
-            TierTwoBaseRate = 0.04m,
-            TierThreeBaseRate = 0.05m,
-            SectorCapPercent = 0.30m,
-            BaseReservePercent = 0.25m,
-            ReserveStepPercent = 0.10m,
-            ReserveMilestoneOne = 10000m,
-            ReserveMilestoneTwo = 100000m
+            TierOneFloor = 0.9m,
+            TierOneCeiling = 0.93m,
+            TierTwoCeiling = 0.96m,
+            TierOneBaseRate = 0.02m,
+            TierTwoBaseRate = 0.03m,
+            TierThreeBaseRate = 0.04m,
+            SectorCapPercent = 0.25m,
+            BaseReservePercent = 0.2m,
+            ReserveStepPercent = 0.05m,
+            ReserveMilestoneOne = 5000m,
+            ReserveMilestoneTwo = 50000m
         };
 
         dbContext.AdjusterParameters.Add(parameters);
@@ -378,11 +379,10 @@ public class AdjusterScanServiceTests
         Assert.Equal(9, allocation.ShareCount);
     }
 
-    // CLAUDE.md's "Adjuster: Concurrent-Position-Cap Displacement, 10% Relative Composite-
-    // Score Margin" (2026-08-01) - end-to-end RunScanAsync tests below. Default
-    // AdjusterParameters values apply throughout (MaxConcurrentPositions=15,
-    // ConcurrentPositionDisplacementMarginPercent=0.10), since SeedActiveAdjusterParametersAsync
-    // doesn't set either explicitly.
+    // Concurrent-position-cap displacement - end-to-end RunScanAsync tests below. Default
+    // (placeholder, redacted for public release - see README.md) AdjusterParameters values
+    // apply throughout for MaxConcurrentPositions/ConcurrentPositionDisplacementMarginPercent,
+    // since SeedActiveAdjusterParametersAsync doesn't set either explicitly.
 
     [Fact]
     public async Task RunScanAsync_AtConcurrentPositionCap_CandidateBelowRequiredMargin_NoDisplacement()
@@ -392,12 +392,15 @@ public class AdjusterScanServiceTests
 
         var weakPosition = await SeedOpenPositionForDisplacementAsync(drpsDb, "WEAK");
 
-        var candidateGateScore = MakeBuyGateScore("ALMOST", 0.85m);
+        var candidateGateScore = MakeBuyGateScore("ALMOST", 0.82m);
         drpsDb.GateScores.Add(candidateGateScore);
         drpsDb.RawOhlcvBars.Add(MakeBar("ALMOST", 100m));
         await drpsDb.SaveChangesAsync();
 
-        // Required score is 0.80 x 1.10 = 0.88 - 0.85 falls short.
+        // The candidate's score falls short of the required displacement margin over the
+        // weakest held position's score - the exact margin formula/value is redacted for
+        // public release (see README.md), so this is a deliberately non-boundary case rather
+        // than one straddling the real cutoff.
         var portfolioState = new PortfolioState(
             TotalDeployedCapital: 0m,
             DeployedCapitalBySector: new Dictionary<string, decimal>(),

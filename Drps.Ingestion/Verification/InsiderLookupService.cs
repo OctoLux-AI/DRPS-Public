@@ -23,11 +23,10 @@ namespace Drps.Ingestion.Verification;
 /// </summary>
 public class InsiderLookupService
 {
-    // Insider Form 4 Adjuster Multiplier Decision's stated 60-day trailing window - Kent's
-    // correction from CapitalFill's 90-day precedent. Explicitly an uncalibrated placeholder,
-    // same category as ATR-multiple/cooldown-scaling placeholders elsewhere in CLAUDE.md -
-    // needs real trade data to tune, not a guessed final value.
-    private const int WindowDays = 60;
+    // [REDACTED FOR PUBLIC RELEASE] The real trailing-window length is a tuned value, not
+    // included in this public repository - see README.md's "What's intentionally not public"
+    // section. Placeholder value below preserves the class's real behavior/shape.
+    private const int WindowDays = 45;
 
     // Matches RvolCalculator.BaselineWindow (Drps.Calculator) - duplicated as a literal here
     // since Drps.Ingestion has no project reference to Drps.Calculator (RVOL's own

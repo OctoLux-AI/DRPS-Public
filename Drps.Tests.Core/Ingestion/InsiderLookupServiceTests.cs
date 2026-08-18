@@ -171,12 +171,13 @@ public class InsiderLookupServiceTests
     }
 
     [Fact]
-    public async Task GetMultiplierAsync_PurchaseOutsideSixtyDayWindow_IsExcludedFromTheSum()
+    public async Task GetMultiplierAsync_PurchaseOutsideTrailingWindow_IsExcludedFromTheSum()
     {
         using var dbContext = InMemoryDbContextFactory.Create();
         SeedTwentyDaysOfBars(dbContext, "AAPL");
-        // 61 days back - just outside the trailing 60-day window.
-        dbContext.RawInsiderObservations.Add(MakePurchase("AAPL", AsOfDate.AddDays(-61), 500_000m));
+        // Well outside the trailing window (the exact window length is redacted for public
+        // release - see README.md), so this purchase must never contribute to the sum.
+        dbContext.RawInsiderObservations.Add(MakePurchase("AAPL", AsOfDate.AddDays(-90), 500_000m));
         await dbContext.SaveChangesAsync();
 
         var service = new InsiderLookupService(dbContext);
@@ -232,7 +233,4 @@ public class InsiderLookupServiceTests
         Assert.Equal(1.0m, result.Multiplier);
         Assert.False(result.IsDataUnverified);
     }
-
-    // --- Pure ComputeMultiplier curve tests ---
-
 }
