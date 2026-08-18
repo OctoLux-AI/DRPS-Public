@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Drps.Adjuster-b5253545-08bd-46ac-9eb1-d76c3f2282f1</UserSecretsId>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
+    <!-- Direct override, above EFCore.SqlServer 10.0.9's own transitive 6.1.1 (CLAUDE.md's
+         "SqlClient / .NET 10 Platform-Not-Supported" decision, 2026-08-16) - 6.1.1 is not
+         documented as tested against .NET 10; 7.0.2 is. -->
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.2" />
+    <!-- Bumped from 10.0.9 alongside Drps.Ingestion's own bump (Drps.Ingestion now pulls
+         Microsoft.Extensions.Hosting.WindowsServices, which requires Hosting >= 10.0.10) -
+         Drps.Adjuster references Drps.Ingestion, so this is a forced transitive alignment,
+         not an independent change to Drps.Adjuster's own behavior. -->
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Drps.Shared\Drps.Shared.csproj" />
+    <ProjectReference Include="..\Drps.Ingestion\Drps.Ingestion.csproj" />
+    <ProjectReference Include="..\Drps.Ledger\Drps.Ledger.csproj" />
+  </ItemGroup>
+
+  <!-- Drps.Ingestion's own appsettings.json/appsettings.Development.json flow transitively into
+       this project's publish output via the ProjectReference above (standard MSBuild content
+       propagation), colliding with this project's own same-named files (NETSDK1152) - same
+       conflict Drps.Calculator/Drps.Gate/Drps.Execution already hit and fixed. Only this
+       project's own copies should ever land in its own publish output - strip anything with a
+       matching filename whose source isn't this project's own directory. Publish-output
+       plumbing only; does not touch which appsettings.json this project loads at runtime. -->
+  <Target Name="ExcludeReferencedProjectAppSettingsFromPublish" BeforeTargets="_HandleFileConflictsForPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="('%(Filename)%(Extension)' == 'appsettings.json' Or '%(Filename)%(Extension)' == 'appsettings.Development.json') And !$([System.String]::Copy('%(FullPath)').StartsWith('$(MSBuildProjectDirectory)'))" />
+    </ItemGroup>
+  </Target>
+</Project>
