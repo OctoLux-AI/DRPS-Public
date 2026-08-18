@@ -1,0 +1,45 @@
+# Claude Code local permission cache (machine-specific absolute paths)
+.claude/settings.local.json
+
+# Build output
+bin/
+obj/
+publish/
+BU BurnDowns/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# User secrets (stored outside repo by design)
+secrets.json
+
+# SQLite data files
+*.db
+*.db-shm
+*.db-wal
+
+# Ingestion run logs (generated per run, not source)
+Drps.Ingestion/Logs/
+Drps.Calculator/Logs/
+Drps.Execution/Logs/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+publish/
