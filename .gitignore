@@ -5,7 +5,9 @@
 bin/
 obj/
 publish/
-BU BurnDowns/
+
+# Test run output
+TestResults/
 
 # Visual Studio
 .vs/
